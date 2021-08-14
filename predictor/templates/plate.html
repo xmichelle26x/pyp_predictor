@@ -4,17 +4,35 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>"Pico y Placa" predictor</title>
+
 </head>
+
 <body>
   <h1>Hello! Welcome to your predictor</h1>
-  <h3>Please enter you Vehicle plate number</h3>
 
-  <form action="/action_page.php"> 
-    <input type="text" autofocus="on" id="plate" name="fname"><br><br>
-    <input type="datetime-local"><br><br>
-    <input type="submit" value="Check">
-  </form>
+  <form action="" method="post">
+    <!-- security -->
+    {% csrf_token %}
+
+    <label>Plate number</label>
+    {{form.plate}} <br><br>
+
+    <label>Date and time </label>
+    {{form.date}} {{form.time}} <br><br>
+
+    <input class="btn btn-primary" type="submit" value="Check">    
+
+</form>
+
+  <!-- <div class="form-group">
+        <input class="form-control" autofocus="on" type="text" name="platenumber" placeholder="Plate number"><br> 
+        <input type="date" class="form-control datepicker" id="datepicker" name="DateTimeField"/><br> 
+        <input type="time" class="form-control timepicker" id="timepicker" name="DateTimeField"/><br>
+    </div> -->
 
 </body>
+
+
 </html>
