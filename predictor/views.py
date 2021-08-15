@@ -1,67 +1,70 @@
-from predictor.forms import MyForm
-from django.shortcuts import render
-from django.http import HttpResponse
+from django.shortcuts import render 
 from django import forms
-from datetime import datetime, time, date   
+from datetime import datetime, time, date  
 
+
+#form
 class inputForm(forms.Form):
   plate = forms.CharField(label="Plate number")
+  plate.widget.attrs.update({'id' : 'plateid'})
+
   date = forms.DateTimeField(
         input_formats=['%d/%m/%Y'],
         widget=forms.DateTimeInput(attrs={
             'type':'date'
         })
     )
+  date.widget.attrs.update({'id' : 'plateid'})
        
   time = forms.DateTimeField(
-        label='Time Field', label_suffix=" : ",
         required=True, input_formats=["%H:%M"],
         error_messages={'required': "This field is required."},
         widget=forms.DateTimeInput(attrs={
             'type':'time'
         })
     )
+  time.widget.attrs.update({'id' : 'timeid'})
 
 
-
-def home(request): 
-  form = inputForm(request.POST) 
-  #rendering the home templte
-  return render(request, 'plate.html',{'form': inputForm})
-
-
-def vehiculePlate(plate, datee, timee):
+#validate plate function 
+def validatePlate(plate, idate, itime):
   days = {
-  'monday':[1,2],
-  'tuesday':[3,4],
-  'wednesday':[5,6],
-  'thrusday':[7,8],
-  'friday':[9,0],
-  }
-
+  1:[1,2],
+  2:[3,4],
+  3:[5,6],
+  4:[7,8],
+  5:[9,0],
+  } 
+  #last digit of the plate
   lastDigit = plate[-1]
-  hours = time(13,30,0) 
-  # datec = '13/08/2021'
+  
+  #get time from the timepicker
+  time2 = datetime.strptime(itime,'%H:%M').time()
 
-  day, month, year = (int(x) for x in datee.split('/'))    
-  ans = date(year, month, day).strftime("%A").lower()
+  #get date from the datepicker
+  day, month, year = (int(float(x)) for x in idate.split('-'))    
+  weekday = date(day, month, year).isoweekday()
 
-  if ans not in days.keys():
-    print(f'YES {plate} YOU CAN DRIVEEE')
-  else:
-    if ((hours >= time(7,0,0) and hours <= time(9,30,0)) or (hours >= time(16,0,0) and hours <= time(19,30,0))):
-      print(f'NOO {plate} YOU CANNOT DRIVE')
-    else:  
-      print(f'YES {plate} YOU CAN DRIVE')
+  #validate the 3 possible scenarios
+  if weekday not in days.keys() or int(lastDigit) not in days[weekday]:
+    return 1, f'PLATE NUMBER: {plate}, YOU ARE ALLOWED TO DRIVE' 
 
+  if ((time2 >= time(7,0,0) and time2 <= time(9,30,0)) or (time2 >= time(16,0,0) and time2 <= time(19,30,0))):
+     return 0, f'PLATE NUMBER: {plate} YOU ARE NOT ALLOWED TO DRIVE'
+  else:  
+     return 1,  f'PLATE NUMBER: {plate}, YOU ARE ALLOWED TO DRIVE'
+  
+ 
+  
 
 
 def check(request):
-  if request.method=='POST':
-      placa = request.POST['placa']
-      date  = request.POST['DateTimeField'] 
+  if request.method == 'POST':
+      plate = request.POST['plate']
+      date  = request.POST['date'] 
+      time  = request.POST['time'] 
+      res, resp = validatePlate(plate, date, time)
+      return render(request,'plate.html', {'form': inputForm, 'res':res, 'resp':resp}) 
 
-      print(placa)
-      print(date)
-      return HttpResponse(placa)
+  return render(request,'plate.html', {'form': inputForm}) 
 
